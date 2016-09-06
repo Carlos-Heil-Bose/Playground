@@ -12,6 +12,8 @@
 		8F22F3431D747D5100EEE783 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8F22F3411D747D5100EEE783 /* Main.storyboard */; };
 		8F22F3451D747D5100EEE783 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8F22F3441D747D5100EEE783 /* Assets.xcassets */; };
 		8F22F3481D747D5100EEE783 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8F22F3461D747D5100EEE783 /* LaunchScreen.storyboard */; };
+		8F94B4881D7F10BC00243000 /* BMAP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F94B4871D7F10BC00243000 /* BMAP.swift */; };
+		8F94B48A1D7F118500243000 /* BLE.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F94B4891D7F118500243000 /* BLE.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +24,8 @@
 		8F22F3441D747D5100EEE783 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8F22F3471D747D5100EEE783 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8F22F3491D747D5100EEE783 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8F94B4871D7F10BC00243000 /* BMAP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BMAP.swift; sourceTree = "<group>"; };
+		8F94B4891D7F118500243000 /* BLE.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BLE.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +64,8 @@
 				8F22F3441D747D5100EEE783 /* Assets.xcassets */,
 				8F22F3461D747D5100EEE783 /* LaunchScreen.storyboard */,
 				8F22F3491D747D5100EEE783 /* Info.plist */,
+				8F94B4871D7F10BC00243000 /* BMAP.swift */,
+				8F94B4891D7F118500243000 /* BLE.swift */,
 			);
 			path = BMAP2;
 			sourceTree = "<group>";
@@ -135,8 +141,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8F94B4881D7F10BC00243000 /* BMAP.swift in Sources */,
 				8F22F3401D747D5100EEE783 /* ViewController.swift in Sources */,
 				8F22F33E1D747D5100EEE783 /* AppDelegate.swift in Sources */,
+				8F94B48A1D7F118500243000 /* BLE.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,6 +296,7 @@
 				8F22F34E1D747D5100EEE783 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
