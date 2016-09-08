@@ -13,53 +13,53 @@
 /// BMAP enumerations
 
 enum BMAPFunctionBlock : UInt8 {
-    case ProductInfo  = 0,
-    Settings          = 1,
-    Status            = 2,
-    FirmwareUpdate    = 3,
-    DeviceManagement  = 4,
-    AudioManagement   = 5,
-    CallManagement    = 6,
-    SessionManagement = 7,
-    Debug             = 8,
-    Unused            = 9,
-    DSP               = 10,
-    BOSEbuild         = 11,
-    HearingAssistance = 12,
-    DataCollection    = 13
+    case productInfo  = 0,
+    settings          = 1,
+    status            = 2,
+    firmwareUpdate    = 3,
+    deviceManagement  = 4,
+    audioManagement   = 5,
+    callManagement    = 6,
+    sessionManagement = 7,
+    debug             = 8,
+    unused            = 9,
+    dsp               = 10,
+    bosEbuild         = 11,
+    hearingAssistance = 12,
+    dataCollection    = 13
 }
 
 enum BMAPOperator : UInt8 {
-    case Op_Set   = 0,
-    Op_Get        = 1,
-    Op_SetGet     = 2,
-    Op_Status     = 3,
-    Op_Error      = 4,
-    Op_Start      = 5,
-    Op_Result     = 6,
-    Op_Processing = 7
+    case op_Set   = 0,
+    op_Get        = 1,
+    op_SetGet     = 2,
+    op_Status     = 3,
+    op_Error      = 4,
+    op_Start      = 5,
+    op_Result     = 6,
+    op_Processing = 7
 }
 
 enum BMAPFunction : UInt8 {
     // BOSEbuild Functions
-    case BB_FBlockInfo        = 0,
-    BB_GetAll                 = 1,
-    BB_ConnectedAccessories   = 2,
-    BB_LEDSupportedModes      = 3,
-    BB_LEDMode                = 4,
-    BB_LEDModeInfo            = 5,
-    BB_LEDUserControlListSize = 6,
-    BB_LEDUserControlInfo     = 7,
-    BB_LEDUserControlValue    = 8,
-    BB_Disconnecting          = 9,
-    BB_SaveLEDSetting         = 10,
-    BB_Analytics              = 11
+    case bb_FBlockInfo        = 0,
+    bb_GetAll                 = 1,
+    bb_ConnectedAccessories   = 2,
+    bb_LEDSupportedModes      = 3,
+    bb_LEDMode                = 4,
+    bb_LEDModeInfo            = 5,
+    bb_LEDUserControlListSize = 6,
+    bb_LEDUserControlInfo     = 7,
+    bb_LEDUserControlValue    = 8,
+    bb_Disconnecting          = 9,
+    bb_SaveLEDSetting         = 10,
+    bb_Analytics              = 11
 }
 
 enum BB_LEDModes : UInt8 {
-    case LEDMode_RGB      = 0,
-    LEDMode_Dancing  = 1,
-    LEDMode_Initial  = 2
+    case ledMode_RGB      = 0,
+    ledMode_Dancing  = 1,
+    ledMode_Initial  = 2
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ enum BB_LEDModes : UInt8 {
 ///        BMAP message
 ///
 ////////////////////////////////////////////////////////////////////////////////
-public class BMAP {
+open class BMAP {
 
     // BMAP Header definition
     struct BMAPHeader {
@@ -113,12 +113,12 @@ public class BMAP {
     }
 
     // getSize - returns BMAP message length in bytes
-    public func getSize() -> Int {
-        return sizeof(BMAPHeader) + Int(Header.DataLength)
+    open func getSize() -> Int {
+        return MemoryLayout<BMAPHeader>.size + Int(Header.DataLength)
     }
 
     // getBytes - returns a list containing the bytes that make up the BMAP message
-    public func getBytes() -> [UInt8] {
+    open func getBytes() -> [UInt8] {
         var MsgBytes : [UInt8]
         MsgBytes = [Header.Nothing, Header.FunctionBlock.rawValue, Header.Function.rawValue, Header.Operator.rawValue, Header.DataLength]
         if (Header.DataLength != 0) {

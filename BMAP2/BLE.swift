@@ -57,34 +57,38 @@ let BMAP_CHARACTERISTIC_UUID = "D417C028-9818-4354-99D1-2AC09D074591"
 ///       This notification is issued when BLE hw interface is powered off.
 ///
 ////////////////////////////////////////////////////////////////////////////////
-public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+open class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     // Local constants
     ///@brief Bose service UUID
-    private let BOSE_UUID:[CBUUID]         = [CBUUID(string:BOSE_SERVICE_UUID)]
+    fileprivate let BOSE_UUID:[CBUUID]         = [CBUUID(string:BOSE_SERVICE_UUID)]
 
     ///@brief BMAP characteristic UUID
-    private let BMAP_CHARACTERISTIC:CBUUID =  CBUUID(string:BMAP_CHARACTERISTIC_UUID)
+    fileprivate let BMAP_CHARACTERISTIC:CBUUID =  CBUUID(string:BMAP_CHARACTERISTIC_UUID)
 
     // Local variables
     ///@brief BLE central manager instance
-    private var central            : CBCentralManager!
+    fileprivate var central            : CBCentralManager?
 
     ///@brief BLE peripheral instance
-    private var peripheral         : CBPeripheral?
+    fileprivate var peripheral         : CBPeripheral?
 
     ///@brief BMAP characteristic instance
-    private var BMAPCharacteristic : CBCharacteristic?
+    fileprivate var BMAPCharacteristic : CBCharacteristic?
 
     ///@brief Timer used during BLE device discovery
-    private var ScanTimer          : NSTimer?
+    fileprivate var ScanTimer          : Timer?
 
     /// List of BOSEbuild devices found during the scan period and their 
     /// associated RSSI
-    private var BOSEbuildDevicesFound = [String() : Int()]
+    fileprivate var BOSEbuildDevicesFound = [String() : Int()]
 
     /// List of BOSEbuild devices found with their name and associated CBPeripheral
     /// instance
-    private var BOSEbuildPeripheral   = [String() : CBPeripheral?()]
+    fileprivate var BOSEbuildPeripheral   = [String : CBPeripheral]()
+
+    override init() {
+
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @fn
@@ -106,14 +110,14 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///         Period of time in seconds that we'll scan for BLE devices
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func ScanForBOSEbuildDevices(central:CBCentralManager, timeout:UInt8) {
+    open func ScanForBOSEbuildDevices(_ central:CBCentralManager, timeout:UInt8) {
         // Start the scan timer
-        ScanTimer = NSTimer.scheduledTimerWithTimeInterval(NSTimeInterval(timeout),
+        ScanTimer = Timer.scheduledTimer(timeInterval: TimeInterval(timeout),
                             target:self, selector:#selector(ScanTimeout), userInfo:nil, repeats: false)
 
         // Search for devices with the BOSE UUID
         self.central = central
-        self.central.scanForPeripheralsWithServices(BOSE_UUID, options:nil)
+        self.central!.scanForPeripherals(withServices: BOSE_UUID, options:nil)
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -133,7 +137,7 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///         notification.
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func ConnectToDevice(DeviceName:String) {
+    open func ConnectToDevice(_ DeviceName:String) {
         // Find the CBPeripheral instance associated with the device name specified
         self.peripheral = BOSEbuildPeripheral[DeviceName]!
 
@@ -142,7 +146,7 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
 
         // Establish BLE connection
         self.peripheral!.delegate = self
-        central.connectPeripheral(self.peripheral!, options:nil);
+        central!.connect(self.peripheral!, options:nil);
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -158,13 +162,13 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///        as a BMAP packet.
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func WriteBMAP(BMAPMessage : BMAP) {
+    open func WriteBMAP(_ BMAPMessage : BMAP) {
         // Obtain the actual bytes to be sent
-        var BMAPbytes : NSData
-        BMAPbytes = NSData(bytes: BMAPMessage.getBytes(), length:BMAPMessage.getSize())
+        var BMAPbytes : Data
+        BMAPbytes = Data(bytes: UnsafePointer<UInt8>(BMAPMessage.getBytes()), count:BMAPMessage.getSize())
 
         // Send the BMAP message over BLE
-        self.peripheral!.writeValue(BMAPbytes, forCharacteristic: self.BMAPCharacteristic!, type: CBCharacteristicWriteType.WithResponse)
+        self.peripheral!.writeValue(BMAPbytes, for: self.BMAPCharacteristic!, type: CBCharacteristicWriteType.withResponse)
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -176,26 +180,26 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///   there is a change in the state of BLE hardware.
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func centralManagerDidUpdateState(central: CBCentralManager) {
+    open func centralManagerDidUpdateState(_ central: CBCentralManager) {
         // Determine the state of the peripheral
 
-        if (central.state == .PoweredOff) {
+        if (central.state == .poweredOff) {
             // Send notification indicating BLE hardware interface is powered off
-            NSNotificationCenter.defaultCenter().postNotificationName(BLEPoweredOffNotification, object: self, userInfo: nil)
+            NotificationCenter.default.post(name: Notification.Name(rawValue: BLEPoweredOffNotification), object: self, userInfo: nil)
             NSLog("CoreBluetooth BLE hardware is powered off")
         }
-        else if (central.state == .PoweredOn) {
+        else if (central.state == .poweredOn) {
             // Send notification indicating BLE hardware interface is powered on
-            NSNotificationCenter.defaultCenter().postNotificationName(BLEPoweredOnNotification, object: self, userInfo: nil)
+            NotificationCenter.default.post(name: Notification.Name(rawValue: BLEPoweredOnNotification), object: self, userInfo: nil)
             NSLog("CoreBluetooth BLE hardware is powered on and ready")
         }
-        else if (central.state == .Unauthorized) {
+        else if (central.state == .unauthorized) {
             NSLog("CoreBluetooth BLE state is unauthorized");
         }
-        else if (central.state == .Unknown) {
+        else if (central.state == .unknown) {
             NSLog("CoreBluetooth BLE state is unknown");
         }
-        else if (central.state == .Unsupported) {
+        else if (central.state == .unsupported) {
             NSLog("CoreBluetooth BLE hardware is unsupported on this platform");
         }
     }
@@ -211,11 +215,11 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///   notification
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
+    open func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         let localName = advertisementData[CBAdvertisementDataLocalNameKey] as? String
         if (localName != nil) {
-            if (localName!.containsString("BOSEbuild")) {
-                BOSEbuildDevicesFound[localName!] = RSSI.integerValue
+            if (localName!.contains("BOSEbuild")) {
+                BOSEbuildDevicesFound[localName!] = RSSI.intValue
                 BOSEbuildPeripheral[localName!]   = peripheral
             }
         }
@@ -231,7 +235,7 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///   Once the connection is established we look for the Bose service UUID.
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
+    open func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         print("Connected")
 
         // Go look for the Bose service UUID on the connected device
@@ -248,7 +252,7 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///   Currently we take no action in this case (but we should!).
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
+    open func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         print("Error")
     }
     
@@ -262,15 +266,15 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///   We then look for the BMAP characteristic of the Bose service.
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
+    open func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         // Look for the BMAP characteristic on the available services 
         // (should be only the Bose service (oxFEBE) since we only tried to 
         //  discover this service).
         for service in peripheral.services! {
-            print("service ", service.UUID.UUIDString)
+            print("service ", service.uuid.uuidString)
             // Find the BMAP characteristic on this service
             peripheral.discoverCharacteristics([BMAP_CHARACTERISTIC],
-                                               forService: service)
+                                               for: service)
         }
     }
     
@@ -283,20 +287,20 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///   connected device (in this case, the BMAP characteristic).
     ///
     ////////////////////////////////////////////////////////////////////////////
-    public func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
+    open func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         // Go through the list of returned services (there should be only one!)
         for service in peripheral.services! {
             // Go through the list of returned characteristics (there should be only one!)
             for characteristic in service.characteristics! {
                 // Make sure it is the BMAP characteristic
-                if (characteristic.UUID == BMAP_CHARACTERISTIC) {
-                    print("characteristic ", characteristic.UUID.UUIDString)
+                if (characteristic.uuid == BMAP_CHARACTERISTIC) {
+                    print("characteristic ", characteristic.uuid.uuidString)
                     self.BMAPCharacteristic = characteristic
-                    peripheral.setNotifyValue(true, forCharacteristic: characteristic)
+                    peripheral.setNotifyValue(true, for: characteristic)
 
                     // Notify BLEManager user that BMAP service is available
                     let connectionDetails = ["isConnected": true]
-                    NSNotificationCenter.defaultCenter().postNotificationName(BLEBMAPServiceAvailableNotification, object: self, userInfo: connectionDetails)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: BLEBMAPServiceAvailableNotification), object: self, userInfo: connectionDetails)
                     break
                 }
             }
@@ -311,11 +315,11 @@ public class BLEManager : NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     ///   Called when the BLE scan timer expires.
     ///
     ////////////////////////////////////////////////////////////////////////////
-    @objc private func ScanTimeout() {
+    @objc fileprivate func ScanTimeout() {
         // Stop the BLE scan
-        self.central.stopScan()
+        self.central!.stopScan()
         // Notify the user of the BOSEbuild devices found
-        NSNotificationCenter.defaultCenter().postNotificationName(BLEBOSEbuildDeviceFoundNotification,
+        NotificationCenter.default.post(name: Notification.Name(rawValue: BLEBOSEbuildDeviceFoundNotification),
                                                                   object: self, userInfo: BOSEbuildDevicesFound)
     }
 }

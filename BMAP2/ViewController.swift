@@ -22,9 +22,9 @@ class ViewController: UIViewController {
         centralmanager = CBCentralManager(delegate: BLEmanager, queue:nil, options: nil);
 
         // Establish handlers for the notification coming from BLEmanager
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ViewController.BLEPoweredOn(_:)), name: BLEPoweredOnNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ViewController.BLEDevicesFound(_:)), name: BLEBOSEbuildDeviceFoundNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ViewController.BLEConnectionUpdate(_:)), name: BLEBMAPServiceAvailableNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(ViewController.BLEPoweredOn(_:)), name: NSNotification.Name(rawValue: BLEPoweredOnNotification), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(ViewController.BLEDevicesFound(_:)), name: NSNotification.Name(rawValue: BLEBOSEbuildDeviceFoundNotification), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(ViewController.BLEConnectionUpdate(_:)), name: NSNotification.Name(rawValue: BLEBMAPServiceAvailableNotification), object: nil)
     }
     
     override func didReceiveMemoryWarning() {
@@ -33,15 +33,15 @@ class ViewController: UIViewController {
     }
 
     // Handler for BLEPoweredOnNotification
-    internal func BLEPoweredOn(notification: NSNotification) {
+    internal func BLEPoweredOn(_ notification: Notification) {
         // BLE is up. Search for BOSEbuild devices
         BLEmanager.ScanForBOSEbuildDevices(centralmanager, timeout: 5)
     }
     
     // Handler for BLEBOSEbuildDeviceFoundNotification
-    internal func BLEDevicesFound(DeviceList: NSNotification) {
+    internal func BLEDevicesFound(_ DeviceList: Notification) {
         var SelectedDevice : String
-        if (DeviceList.userInfo != nil) {
+        if ((DeviceList as NSNotification).userInfo != nil) {
             SelectedDevice = FindHighestRSSI(DeviceList)
             BLEmanager.ConnectToDevice(SelectedDevice)
         }
@@ -51,33 +51,33 @@ class ViewController: UIViewController {
     }
     
     // Handler for BLEBMAPServiceAvailableNotification
-    internal func BLEConnectionUpdate(notification: NSNotification) {
-        let userInfo = notification.userInfo as! [String: Bool]
+    internal func BLEConnectionUpdate(_ notification: Notification) {
+        let userInfo = (notification as NSNotification).userInfo as! [String: Bool]
         // Check if connection is successful
         if let isConnected: Bool = userInfo["isConnected"] {
             if (isConnected) {
                 // We are good to go. Set the cube red!
                 // Set the color red...
-                let SetLEDColor = BMAP(FunctionBlock:.BOSEbuild, Function:.BB_LEDUserControlValue, Operator:.Op_Set, Data :[0,1,0xff,0,0] )
+                let SetLEDColor = BMAP(FunctionBlock:.bosEbuild, Function:.bb_LEDUserControlValue, Operator:.op_Set, Data :[0,1,0xff,0,0] )
                 BLEmanager.WriteBMAP(SetLEDColor)
                 
                 // Now change the LED mode to RGB...
-                let SetLEDModeRGB = BMAP(FunctionBlock:.BOSEbuild, Function:.BB_LEDMode, Operator:.Op_Set, Data :[BB_LEDModes.LEDMode_RGB.rawValue] )
+                let SetLEDModeRGB = BMAP(FunctionBlock:.bosEbuild, Function:.bb_LEDMode, Operator:.op_Set, Data :[BB_LEDModes.ledMode_RGB.rawValue] )
                 BLEmanager.WriteBMAP(SetLEDModeRGB)
             }
         }
     }
     
-    private func FindHighestRSSI(notification:NSNotification) -> String {
+    fileprivate func FindHighestRSSI(_ notification:Notification) -> String {
         var HighRSSI : Int = -255
         var HighRSSIName : String = ""
-        let DeviceList = notification.userInfo
+        let DeviceList = (notification as NSNotification).userInfo
         if (DeviceList != nil) {
             for (DeviceName, DeviceRSSI) in DeviceList! {
-                if (DeviceRSSI.integerValue < 0) {
+                if ((DeviceRSSI as AnyObject).intValue < 0) {
                     NSLog("Device \(DeviceName): RSSI = \(DeviceRSSI)" )
-                    if (HighRSSI < DeviceRSSI.integerValue) {
-                        HighRSSI = DeviceRSSI.integerValue
+                    if (HighRSSI < (DeviceRSSI as AnyObject).intValue) {
+                        HighRSSI = (DeviceRSSI as AnyObject).intValue
                         HighRSSIName = DeviceName as! String
                     }
                 }
